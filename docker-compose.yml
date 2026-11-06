@@ -1,0 +1,47 @@
+services:
+  postgres:
+    build: ./postgres
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "postgres", "-d", "filesystem"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  api:
+    build: ./api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://chris_user:secret_pass2@postgres:5432/filesystem
+      CORS_ORIGINS: http://localhost:3000,http://localhost:5173
+    ports:
+      - "3001:3000"
+    healthcheck:
+      # wget comes with NodeJS Alipne image
+      # -q  (quiet)      : turns off progress and status messages.
+      # -O- (output to -): -O sets where the response goes, and - means stdout,
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - api
+    ports:
+      - "5173:8080"
+    healthcheck:
+      # wget comes with Nginx Alipne image
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata:

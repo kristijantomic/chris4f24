@@ -1,0 +1,7 @@
+node_modules
+dist
+coverage
+.env
+notes
+api/db
+MY-LEARN.md
