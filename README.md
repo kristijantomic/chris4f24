@@ -74,7 +74,9 @@ For search and suggestions, omit `parentId` to search all files, or pass `root` 
 
 Names are unique per folder regardless of case, so `Report.txt` and `report.txt` cannot share a folder. Exact search is case-sensitive, suggestions are not.
 
-Errors use `400` for validation, `404` for missing nodes, `409` for name conflicts, `415` for a non-JSON body, `429` for rate limiting and `503` when the database is unavailable.
+Errors use `400` for validation, `404` for missing nodes, `409` for name conflicts, `413` for a body over 4 KB, `415` for a non-JSON or compressed body, `429` for rate limiting, `503` when the database is unavailable or a query times out, and `500` for anything unexpected. Error bodies look like `{ "error": { "code": "NAME_CONFLICT", "message": "..." } }`, and `429` responses include a `Retry-After` header.
+
+Successful creates return `201` with the new node, and deletes return `204` with no body.
 
 ## Frontend
 
